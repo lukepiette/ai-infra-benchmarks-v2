@@ -1,0 +1,6 @@
+aiohttp
+tqdm
+numpy
+pandas
+tabulate
+python-dotenv
