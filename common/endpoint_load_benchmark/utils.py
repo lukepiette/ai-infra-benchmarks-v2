@@ -60,6 +60,8 @@ async def async_request_chat_completions(
 
         generated_text = ""
         st = time.perf_counter()
+        latency = 0.0
+        # TODO: Latency calculation is faulty. Fix it.
         try:
             async with session.post(url=api_url, json=payload, headers=headers) as response:
                 if response.status == 200:
@@ -120,6 +122,8 @@ async def async_request_completions(
 
         generated_text = ""
         st = time.perf_counter()
+        # TODO: Latency calculation is faulty. Fix it.
+        latency = 0.0
         try:
             async with session.post(url=api_url, json=payload,
                                     headers=headers) as response:
