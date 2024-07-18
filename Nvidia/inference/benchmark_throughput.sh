@@ -5,7 +5,7 @@ RESULTS_DIR="benchmark_throughput_results"
 mkdir -p $RESULTS_DIR
 
 # Model and other parameters
-MODEL="meta-llama/Meta-Llama-3-8B-Instruct"
+MODEL="openchat/openchat-3.5-0106"
 INPUT_LEN=128
 OUTPUT_LEN=128
 # GPU_MEMORY_UTILIZATION=0.98
