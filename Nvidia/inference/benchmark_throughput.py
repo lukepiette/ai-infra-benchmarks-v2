@@ -12,7 +12,7 @@ from transformers import (AutoModelForCausalLM, AutoTokenizer,
 from vllm.engine.arg_utils import EngineArgs
 from vllm.model_executor.layers.quantization import QUANTIZATION_METHODS
 from vllm.utils import FlexibleArgumentParser
-from nvidia.utils.utils import monitor_resources
+from nvidia.utils import utils
 
 def sample_requests(
     dataset_path: str,
@@ -144,7 +144,7 @@ def main(args: argparse.Namespace):
         requests = sample_requests(args.dataset, args.num_prompts, tokenizer,
                                    args.output_len)
 
-    resource_usage_start = monitor_resources()
+    resource_usage_start = utils.monitor_resources()
     if args.backend =="vllm":
         elapsed_time = run_vllm(
             requests, args.model, args.tokenizer, args.quantization,
@@ -156,7 +156,7 @@ def main(args: argparse.Namespace):
             args.max_num_batched_tokens, args.distributed_executor_backend,
             args.gpu_memory_utilization, args.download_dir, args.load_format)
 
-    resource_usage_end = monitor_resources()
+    resource_usage_end = utils.monitor_resources()
 
     total_num_tokens = sum(prompt_len + output_len
                            for _, prompt_len, output_len in requests)
