@@ -1,5 +1,5 @@
 ### To run these txt2Img benchmarks- 
-1. Run `pip install accelerate trasnformers diffusers`.
+1. Run `pip install accelerate transformers diffusers protobuf transformers[sentencepiece]`.
 2. If Models are gated on huggingface either set enviornment variable `HF_TOKEN` or do huggingface login for authorization. 
 3. once everything is done run python txt2img_benchmark.py
 
