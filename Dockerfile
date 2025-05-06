@@ -13,6 +13,7 @@ RUN apt-get update \
        python3-pip \
        git \
        build-essential \
+       kmod \
     && rm -rf /var/lib/apt/lists/*
 
 # Make python3.11 the default python and pip3 the default pip
