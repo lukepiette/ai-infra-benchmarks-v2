@@ -21,7 +21,8 @@ RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.11 1 \
 
 # Create a non-root user (optional but recommended)
 # Using a high UID/GID to avoid conflicts with host system users if volumes are mounted
-RUN useradd --uid 1001 --gid 1001 -ms /bin/bash runner
+RUN groupadd --gid 1001 runner && \
+    useradd --uid 1001 --gid 1001 -ms /bin/bash runner
 
 # Set working directory
 WORKDIR /app
