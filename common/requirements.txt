@@ -16,3 +16,9 @@ accelerate
 tiktoken
 sentencepiece
 # xformers  # Often beneficial but can have tricky installs, optional for now
+supabase
+# Image benchmark dependencies
+torch>=1.13.0
+diffusers>=0.18.0
+transformers>=4.30.0
+accelerate>=0.21.0
