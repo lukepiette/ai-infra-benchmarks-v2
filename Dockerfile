@@ -6,19 +6,19 @@ FROM nvidia/cuda:12.1.1-cudnn8-devel-ubuntu22.04 AS base
 # Set DEBIAN_FRONTEND to noninteractive to avoid prompts during apt-get install
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install Python 3.11, pip, git, and build-essential
+# Install Python 3 (system default), pip, and build-essential
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-       python3.11 \
+       python3 \
        python3-pip \
        git \
        build-essential \
        kmod \
     && rm -rf /var/lib/apt/lists/*
 
-# Make python3.11 the default python and pip3 the default pip
-RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.11 1 \
-    && update-alternatives --install /usr/bin/pip pip /usr/bin/pip3 1
+# Ensure `python` and `pip` refer to Python3 and pip3
+RUN ln -s /usr/bin/python3 /usr/bin/python && \
+    ln -s /usr/bin/pip3 /usr/bin/pip
 
 # Create a non-root user (optional but recommended)
 # Using a high UID/GID to avoid conflicts with host system users if volumes are mounted
@@ -31,9 +31,9 @@ WORKDIR /app
 # Copy just the requirements first to leverage Docker layer caching
 COPY common/requirements.txt ./requirements.txt
 
-# Upgrade pip, install numpy first so build-time dependencies are available, then install all requirements
+# Upgrade pip and preinstall numpy and PyTorch (with CUDA) so vLLM's build can import torch
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir numpy && \
+    pip install --no-cache-dir numpy torch==2.3.1 torchvision==0.18.1 torchaudio==2.3.1 && \
     pip install --no-cache-dir --break-system-packages --no-build-isolation -r requirements.txt
 
 # Copy the rest of the source tree
@@ -44,4 +44,4 @@ RUN chown -R runner:runner /app
 USER runner
 
 # Default entrypoint – the benchmark orchestrator script
-ENTRYPOINT ["python", "-u", "/app/run_benchmark.py"] 
+ENTRYPOINT ["python3", "-u", "/app/run_benchmark.py"] 
