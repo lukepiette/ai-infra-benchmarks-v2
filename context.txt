@@ -1,0 +1,100 @@
+################################################################################################
+# ai-infra-benchmarks-v2 ‑ Project Context & Quick-Start Guide
+################################################################################################
+
+This document provides the minimum set of knowledge a new engineer / AI assistant needs in
+order to understand, modify and run this repository.  Everything below is **source-of-truth**;
+keep it up-to-date whenever the repo's behaviour changes.
+
+──────────────────────────────────────────────────────────────────────────────────────────────
+1. PURPOSE
+──────────────────────────────────────────────────────────────────────────────────────────────
+The repo houses the *server-side* benchmarking logic that powers an internal RunPod web app.
+Benchmarks measure GPU performance for both LLM and Image-gen workloads across many GPU SKUs.
+The primary entry-point is the Docker image `lukepiette/ai-bench`, executed inside a RunPod
+pod.  Form data collected in the Next.js front-end is passed to the container exclusively via
+environment variables.
+
+──────────────────────────────────────────────────────────────────────────────────────────────
+2. HIGH-LEVEL FLOW
+──────────────────────────────────────────────────────────────────────────────────────────────
+(front-end)  →  Next.js API route  →  RunPod `POST /v1/pods`  →  Pod starts
+                                               │
+                                               └──> Container ENTRYPOINT = `python run_benchmark.py`
+
+`run_benchmark.py` reads env-vars, decides whether this is an LLM or Image benchmark, then:
+ • LLM  : calls `benchmark_throughput.py` (vLLM) once per requested batch-size.
+ • Image: (placeholder) calls `run_image_benchmark()`; to be replaced with real logic.
+Results are emitted as a single JSON blob on stdout (later pushed to Supabase).
+
+──────────────────────────────────────────────────────────────────────────────────────────────
+3. KEY ENVIRONMENT VARIABLES (all **strings**)
+──────────────────────────────────────────────────────────────────────────────────────────────
+BENCHMARK_TYPE        "LLM" | "Image"
+AI_MODEL_REPO         HuggingFace repo id, e.g. "meta-llama/Llama-2-7b-chat-hf"
+LLM_PARAMS_JSON       Only if BENCHMARK_TYPE==LLM   – JSON string:
+                      {"tokensIn":512, "tokensOut":512, "batchSizes":[1,8,32]}
+IMAGE_PARAMS_JSON     Only if BENCHMARK_TYPE==Image – JSON string:
+                      {"stepCount":25, "resolutionWidth":512, "resolutionHeight":512}
+HUGGING_FACE_HUB_TOKEN  (optional) auth for gated models.
+
+Any additional env-vars placed in the RunPod spec will be inherited normally.
+
+──────────────────────────────────────────────────────────────────────────────────────────────
+4. REPO LAYOUT (after refactor)
+──────────────────────────────────────────────────────────────────────────────────────────────
+├── benchmark_throughput.py        # vLLM throughput script (moved from Nvidia/)
+├── benchmark_latency.py           # vLLM latency script (unused today)
+├── benchmark_all.sh / .py / .sh   # helper wrappers from NVIDIA reference
+├── nvidia/                        # lower-case package containing shared utils
+│   └── utils/
+│       └── utils.py               # GPU/CPU resource monitoring helpers
+├── run_benchmark.py               # Container ENTRYPOINT / dispatcher
+├── Dockerfile                     # Builds lukepiette/ai-bench image (CPU build by default)
+├── common/requirements.txt        # Python deps (torch+cu121, vllm, transformers…)
+├── .gitignore
+└── context.txt                    # ← you are here
+
+──────────────────────────────────────────────────────────────────────────────────────────────
+5. QUICK LOCAL TEST (CPU-only)
+──────────────────────────────────────────────────────────────────────────────────────────────
+# create venv + install deps
+pip install -r common/requirements.txt  # very large, grab coffee ☕
+
+# run a small model benchmark
+PYTHONPATH=. BENCHMARK_TYPE=LLM \
+AI_MODEL_REPO=facebook/opt-125m \
+LLM_PARAMS_JSON='{"tokensIn":64,"tokensOut":64,"batchSizes":[1,2]}' \
+python run_benchmark.py
+
+──────────────────────────────────────────────────────────────────────────────────────────────
+6. DOCKER IMAGE BUILD (GPU-target)
+──────────────────────────────────────────────────────────────────────────────────────────────
+# Build & tag locally (requires NVIDIA Container Toolkit)
+docker build -t lukepiette/ai-bench:dev .
+
+# Push after testing
+# docker push lukepiette/ai-bench:dev
+
+──────────────────────────────────────────────────────────────────────────────────────────────
+7. ADDING A NEW BENCHMARK TYPE
+──────────────────────────────────────────────────────────────────────────────────────────────
+1. Extend the Supabase schema to include params + result tables.
+2. Update front-end form.
+3. Update `run_benchmark.py` to parse `FOO_PARAMS_JSON` and call new benchmark runner.
+4. Implement benchmark runner (importable function or separate script).
+5. Create result aggregation & Supabase upload logic (TODO).
+
+──────────────────────────────────────────────────────────────────────────────────────────────
+8. TROUBLESHOOTING FAQ
+──────────────────────────────────────────────────────────────────────────────────────────────
+• ModuleNotFoundError nvidia.utils – ensure `nvidia/` dir exists and PYTHONPATH includes repo root.
+• CUDA Available: False – container must run with `--gpus all` and host needs NVIDIA drivers.
+• OOM on model load – lower `--gpu-memory-utilization` or choose smaller model.
+• Disk full errors when downloading HF models – clear `/root/.cache/huggingface` or increase volume.
+
+──────────────────────────────────────────────────────────────────────────────────────────────
+9. MAINTAINERS
+──────────────────────────────────────────────────────────────────────────────────────────────
+Luke Piette <luke.piette@runpod.io>  – primary contact.
+################################################################################################ 
