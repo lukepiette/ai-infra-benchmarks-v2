@@ -31,9 +31,12 @@ WORKDIR /app
 # Copy just the requirements first to leverage Docker layer caching
 COPY common/requirements.txt ./requirements.txt
 
-# Upgrade pip and preinstall numpy and PyTorch (with CUDA) so vLLM's build can import torch
+# Upgrade pip and pre-install core libs so vLLM's build succeeds
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir numpy torch==2.3.1 torchvision==0.18.1 torchaudio==2.3.1 && \
+    pip install --no-cache-dir \
+        numpy \
+        torch==2.3.1 torchvision==0.18.1 torchaudio==2.3.1 \
+        packaging setuptools wheel && \
     pip install --no-cache-dir --break-system-packages --no-build-isolation -r requirements.txt
 
 # Copy the rest of the source tree
