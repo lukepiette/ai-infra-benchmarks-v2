@@ -38,10 +38,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Upgrade pip and pre-install everything vLLM needs at build-time
 RUN pip install --no-cache-dir --upgrade pip && \
+    # Core build stack (new setuptools first!)
+    pip install --no-cache-dir \
+        setuptools>=70 setuptools_scm pybind11 ninja cmake packaging wheel && \
+    # Heavy deps needed at runtime and for vllm's setup.py
     pip install --no-cache-dir \
         numpy \
-        torch==2.3.1 torchvision==0.18.1 torchaudio==2.3.1 \
-        packaging setuptools wheel setuptools_scm pybind11 ninja cmake && \
+        torch==2.3.1 torchvision==0.18.1 torchaudio==2.3.1 && \
+    # Finally, install the project requirements (no build isolation)
     pip install --no-cache-dir --break-system-packages --no-build-isolation -r requirements.txt
 
 # Copy the rest of the source tree
