@@ -31,12 +31,10 @@ WORKDIR /app
 # Copy just the requirements first to leverage Docker layer caching
 COPY common/requirements.txt ./requirements.txt
 
-# Upgrade pip to ensure support for --break-system-packages and other modern features
-RUN pip install --no-cache-dir --upgrade pip
-
-# Install Python dependencies
-# Using --break-system-packages as we are in a container and manage our own Python
-RUN pip install --no-cache-dir --break-system-packages -r requirements.txt
+# Upgrade pip, install numpy first so build-time dependencies are available, then install all requirements
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir numpy && \
+    pip install --no-cache-dir --break-system-packages --no-build-isolation -r requirements.txt
 
 # Copy the rest of the source tree
 COPY . .
