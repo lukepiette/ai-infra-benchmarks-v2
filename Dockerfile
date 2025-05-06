@@ -17,8 +17,8 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 # Ensure `python` and `pip` refer to Python3 and pip3
-RUN ln -s /usr/bin/python3 /usr/bin/python && \
-    ln -s /usr/bin/pip3 /usr/bin/pip
+RUN ln -sf /usr/bin/python3 /usr/bin/python && \
+    ln -sf /usr/bin/pip3 /usr/bin/pip
 
 # Create a non-root user (optional but recommended)
 # Using a high UID/GID to avoid conflicts with host system users if volumes are mounted
