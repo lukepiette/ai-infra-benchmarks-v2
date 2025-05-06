@@ -31,12 +31,17 @@ WORKDIR /app
 # Copy just the requirements first to leverage Docker layer caching
 COPY common/requirements.txt ./requirements.txt
 
-# Upgrade pip and pre-install core libs so vLLM's build succeeds
+# Extra OS build tools
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        python3-dev ninja-build cmake && \
+    rm -rf /var/lib/apt/lists/*
+
+# Upgrade pip and pre-install everything vLLM needs at build-time
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir \
         numpy \
         torch==2.3.1 torchvision==0.18.1 torchaudio==2.3.1 \
-        packaging setuptools wheel && \
+        packaging setuptools wheel setuptools_scm pybind11 ninja cmake && \
     pip install --no-cache-dir --break-system-packages --no-build-isolation -r requirements.txt
 
 # Copy the rest of the source tree
