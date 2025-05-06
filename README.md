@@ -1,31 +1,48 @@
-# AI-Infra Benchmarks
+# Benchmarking with `vllm`
 
-Welcome to the **AI-Infra Benchmarks** repository. This repository serves as a centralized location for benchmarks related to Large Language Model (LLM) inference and other performance evaluations. As the repository evolves, we will incorporate additional benchmarks for fine-tuning and inference to gauge performance across different hardware configurations.
+## Overview
 
-## Directory Structure
+This document provides instructions on how to run benchmarks using the `vllm`. You can run benchmarks through Python scripts or shell scripts provided in this repository.
 
-- **`/nvidia/`**: Contains benchmarks specific to Nvidia hardware.
-- **`/common/`**: Includes benchmarks that are not specific to any hardware, such as serving benchmarks.
-- **`/amd/`**: Will contain benchmarks for running on AMD hardware.
+## Installation
 
-## How to Run Benchmarks
+1. **Install `vllm`:**
 
-1. **Clone this repository:**
+   To install the `vllm` library, use pip:
 
    ```bash
-   git clone https://github.com/runpod/ai-infra-benchmarks.git
-   cd ai-infra-benchmarks
+   pip install vllm
+2. **Running Benchmarks**
+Using Python Script  Once vllm is installed, you can execute the Python script to run a benchmark. Here’s an example command:
+
+   ```bash
+   python benchmark_throughput.py --backend vllm --model "meta-llama/Meta-Llama-3-8B-Instruct" --input-len=128 --output-len=128 --gpu-memory-        
+   utilization=0.98 --num-prompts=1
 
 
-2. **Follow instructions in the respective hardware directory to run the benchmarks.**
+## Using Shell Scripts
 
-   - For Nvidia benchmarks, navigate to the `/nvidia/` directory and follow the provided instructions.
-   - For common benchmarks, check the `/common/` directory.
-   - For AMD benchmarks, follow the instructions in the `/amd/` directory.
+Alternatively, you can use the provided shell scripts to run benchmarks. Follow these steps:
 
-## Notes
+### Grant Execute Permissions:
 
-1. This repository currently contains inference benchmarks only. As our requirements evolve, we will actively update the repository to include additional benchmarks and tools.
+Before running the shell scripts, make sure to grant execute permissions using chmod:
 
-## Contributing
-Please follow the standard pull request process and include relevant details about the benchmarks or improvements you are adding.
+```bash
+chmod +x benchmark_throughput.sh
+chmod +x benchmark_latency.sh
+chmod +x benchmark_all.sh
+```
+
+### Run the Benchmarks:
+```bash
+For throughput benchmarking: ./benchmark_throughput.sh 
+For latency benchmarking: ./benchmark_latency.sh
+To run both throughput and latency benchmarks: ./benchmark_all.sh
+```
+
+### Additional Information
+
+Make sure to replace the example parameters with your own if needed.
+The shell scripts and Python script are designed to be run in a Unix-like environment.
+For any further customization or parameters, refer to the script documentation or source code.
