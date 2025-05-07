@@ -29,6 +29,7 @@ from datetime import datetime # For created_at
 
 from dotenv import load_dotenv
 from supabase import create_client, Client
+import requests
 
 # --------------------------------------------------------------------------------------
 # Helper: structured error with clear message for easier debugging inside the container
@@ -407,6 +408,27 @@ def main() -> None:
     print(json.dumps(output, indent=2), flush=True)
 
 
-# --------------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
+def terminate_runpod_pod():
+    """Terminate the RunPod pod by calling the RunPod API."""
+    pod_id = os.getenv("RUNPOD_POD_ID")
+    api_key = os.getenv("RUNPOD_API_KEY")
+    if pod_id and api_key:
+        headers = {"Authorization": f"Bearer {api_key}"}
+        url = f"https://rest.runpod.io/v1/pods/{pod_id}"
+        try:
+            resp = requests.delete(url, headers=headers)
+            if resp.status_code in (200, 204):
+                print(f"[benchmarkly] RunPod pod {pod_id} termination requested (status {resp.status_code}).", flush=True)
+            else:
+                print(f"[benchmarkly] WARN: Failed to terminate RunPod pod {pod_id}: {resp.status_code} {resp.text}", flush=True)
+        except Exception as e:
+            print(f"[benchmarkly] WARN: Exception during RunPod pod termination: {e}", file=sys.stderr, flush=True)
+    else:
+        print("[benchmarkly] No RUNPOD_POD_ID or RUNPOD_API_KEY provided, skipping pod termination.", flush=True)
+
 if __name__ == "__main__":
-    main() 
+    try:
+        main()
+    finally:
+        terminate_runpod_pod() 
